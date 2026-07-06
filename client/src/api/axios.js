@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: "https://hyperlocal-marketplace-api.onrender.com/api",
 });
 
 // Automatically attach the JWT token to every request, if it exists
