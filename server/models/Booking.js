@@ -24,6 +24,14 @@ const bookingSchema = new mongoose.Schema({
     type: String, // e.g. "10:00-11:00"
     required: true,
   },
+  priceAtBooking: {
+  type: Number,
+  required: true,
+},
+serviceTitleAtBooking: {
+  type: String,
+  required: true,
+},
   status: {
     type: String,
     enum: ["pending", "accepted", "rejected", "completed", "cancelled"],

@@ -5,6 +5,7 @@ import RegisterPage from "./pages/RegisterPage";
 import CustomerDashboard from "./pages/CustomerDashboard";
 import ProviderDashboard from "./pages/ProviderDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import "./App.css";
 
 function AppContent() {
   const { user } = useAuth();
@@ -13,37 +14,29 @@ function AppContent() {
   if (!user) {
     if (showRegister) {
       return (
-        <div>
+        <div className="page-wrapper">
           <RegisterPage />
-          <p style={{ textAlign: "center" }}>
-            Already have an account?{" "}
+          <p className="auth-toggle">
+            Already have an account?
             <button onClick={() => setShowRegister(false)}>Login</button>
           </p>
         </div>
       );
     }
     return (
-      <div>
+      <div className="page-wrapper">
         <LoginPage />
-        <p style={{ textAlign: "center" }}>
-          New here?{" "}
+        <p className="auth-toggle">
+          New here?
           <button onClick={() => setShowRegister(true)}>Register</button>
         </p>
       </div>
     );
   }
 
-  if (user.role === "customer") {
-    return <CustomerDashboard />;
-  }
-
-  if (user.role === "provider") {
-    return <ProviderDashboard />;
-  }
-
-  if (user.role === "admin") {
-    return <AdminDashboard />;
-  }
+  if (user.role === "customer") return <CustomerDashboard />;
+  if (user.role === "provider") return <ProviderDashboard />;
+  if (user.role === "admin") return <AdminDashboard />;
 
   return <LoginPage />;
 }

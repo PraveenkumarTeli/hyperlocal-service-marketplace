@@ -24,6 +24,35 @@ router.post("/", protect, authorize("provider"), async (req, res) => {
   }
 });
 
+// UPDATE a service (provider only, must own it) - resets approval, requires admin to re-approve
+router.put("/:id", protect, authorize("provider"), async (req, res) => {
+  try {
+    const service = await Service.findById(req.params.id);
+
+    if (!service) {
+      return res.status(404).json({ message: "Service not found" });
+    }
+
+    if (service.providerId.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized to edit this service" });
+    }
+
+    const { category, title, description, price } = req.body;
+
+    service.category = category ?? service.category;
+    service.title = title ?? service.title;
+    service.description = description ?? service.description;
+    service.price = price ?? service.price;
+    service.isApproved = false;
+
+    await service.save();
+
+    res.status(200).json({ message: "Service updated, pending re-approval", service });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
 // GET all approved services (public - customers browsing)
 router.get("/", async (req, res) => {
   try {

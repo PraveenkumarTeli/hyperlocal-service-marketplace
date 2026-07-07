@@ -1,17 +1,13 @@
 import { useState } from "react";
 import API from "../api/axios";
 
-function RegisterPage({ onSuccess }) {
+function RegisterPage() {
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "customer",
-    phone: "",
-    location: "",
+    name: "", email: "", password: "", role: "customer", phone: "", location: "",
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,57 +17,54 @@ function RegisterPage({ onSuccess }) {
     e.preventDefault();
     setError("");
     setSuccess("");
-
+    setLoading(true);
     try {
       await API.post("/auth/register", formData);
       setSuccess("Registration successful! You can now log in.");
+      setFormData({ name: "", email: "", password: "", role: "customer", phone: "", location: "" });
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: "400px", margin: "50px auto" }}>
+    <div className="auth-container">
       <h2>Register</h2>
-
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: "10px" }}>
+        <div className="form-group">
           <label>Name</label>
-          <input type="text" name="name" value={formData.name} onChange={handleChange} required style={{ width: "100%", padding: "8px" }} />
+          <input type="text" name="name" className="form-control" value={formData.name} onChange={handleChange} required />
         </div>
-
-        <div style={{ marginBottom: "10px" }}>
+        <div className="form-group">
           <label>Email</label>
-          <input type="email" name="email" value={formData.email} onChange={handleChange} required style={{ width: "100%", padding: "8px" }} />
+          <input type="email" name="email" className="form-control" value={formData.email} onChange={handleChange} required />
         </div>
-
-        <div style={{ marginBottom: "10px" }}>
+        <div className="form-group">
           <label>Password</label>
-          <input type="password" name="password" value={formData.password} onChange={handleChange} required style={{ width: "100%", padding: "8px" }} />
+          <input type="password" name="password" className="form-control" value={formData.password} onChange={handleChange} required />
         </div>
-
-        <div style={{ marginBottom: "10px" }}>
+        <div className="form-group">
           <label>Register as</label>
-          <select name="role" value={formData.role} onChange={handleChange} style={{ width: "100%", padding: "8px" }}>
+          <select name="role" className="form-control" value={formData.role} onChange={handleChange}>
             <option value="customer">Customer</option>
             <option value="provider">Provider</option>
           </select>
         </div>
-
-        <div style={{ marginBottom: "10px" }}>
+        <div className="form-group">
           <label>Phone</label>
-          <input type="text" name="phone" value={formData.phone} onChange={handleChange} style={{ width: "100%", padding: "8px" }} />
+          <input type="text" name="phone" className="form-control" value={formData.phone} onChange={handleChange} />
         </div>
-
-        <div style={{ marginBottom: "10px" }}>
+        <div className="form-group">
           <label>Location</label>
-          <input type="text" name="location" value={formData.location} onChange={handleChange} style={{ width: "100%", padding: "8px" }} />
+          <input type="text" name="location" className="form-control" value={formData.location} onChange={handleChange} />
         </div>
-
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        {success && <p style={{ color: "green" }}>{success}</p>}
-
-        <button type="submit" style={{ padding: "10px 20px" }}>Register</button>
+        {error && <p className="alert alert-error">{error}</p>}
+        {success && <p className="alert alert-success">{success}</p>}
+        <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+          {loading ? "Registering..." : "Register"}
+        </button>
       </form>
     </div>
   );

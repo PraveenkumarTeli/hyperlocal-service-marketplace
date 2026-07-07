@@ -29,12 +29,14 @@ router.post("/", protect, authorize("customer"), async (req, res) => {
     }
 
     const newBooking = new Booking({
-      customerId: req.user.id,
-      providerId: service.providerId,
-      serviceId,
-      bookingDate,
-      timeSlot,
-    });
+  customerId: req.user.id,
+  providerId: service.providerId,
+  serviceId,
+  bookingDate,
+  timeSlot,
+  priceAtBooking: service.price,
+  serviceTitleAtBooking: service.title,
+});
 
     await newBooking.save();
     res.status(201).json({ message: "Booking created, waiting for provider confirmation", booking: newBooking });

@@ -6,55 +6,44 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // stops the page from reloading on form submit
-
+    e.preventDefault();
+    setError("");
+    setLoading(true);
     try {
       const response = await API.post("/auth/login", { email, password });
       const { token, user } = response.data;
-
-      login(user, token); // saves to AuthContext + localStorage
-
-      alert(`Welcome ${user.name}! Role: ${user.role}`);
+      login(user, token);
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: "400px", margin: "50px auto" }}>
+    <div className="auth-container">
       <h2>Login</h2>
 
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: "10px" }}>
+        <div className="form-group">
           <label>Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{ width: "100%", padding: "8px" }}
-          />
+          <input type="email" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </div>
 
-        <div style={{ marginBottom: "10px" }}>
+        <div className="form-group">
           <label>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{ width: "100%", padding: "8px" }}
-          />
+          <input type="password" className="form-control" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </div>
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
+        {error && <p className="alert alert-error">{error}</p>}
 
-        <button type="submit" style={{ padding: "10px 20px" }}>
-          Login
+        <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
         </button>
       </form>
     </div>
