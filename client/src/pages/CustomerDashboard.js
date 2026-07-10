@@ -17,13 +17,14 @@ function CustomerDashboard() {
 
   const [ratingBookingId, setRatingBookingId] = useState(null);
   const [ratingValue, setRatingValue] = useState(5);
-
+   
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    fetchServices();
-    fetchMyBookings();
-    fetchReviewedBookings();
-  }, []);
+useEffect(() => {
+  fetchServices();
+  fetchMyBookings();
+  fetchReviewedBookings();
+}, []);
+  
 
   const fetchReviewedBookings = async () => {
   try {
