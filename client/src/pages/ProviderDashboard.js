@@ -166,7 +166,12 @@ function ProviderDashboard() {
         {bookings.map((booking) => (
           <div key={booking._id} className="card">
             <h4>{booking.serviceTitleAtBooking || booking.serviceId?.title}</h4>
-            <p>Customer: {booking.customerId?.name} ({booking.customerId?.phone})</p>
+            <p>
+  Customer: {booking.customerId?.name} —{" "}
+  <a href={`tel:${booking.customerId?.phone}`} className="phone-link">
+    {booking.customerId?.phone}
+  </a>
+</p>
             <p>{booking.bookingDate} | {booking.timeSlot} | ₹{booking.priceAtBooking}</p>
             <p><span className={badgeClass(booking.status)}>{booking.status}</span></p>
 

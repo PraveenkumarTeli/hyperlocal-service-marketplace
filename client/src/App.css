@@ -248,3 +248,14 @@ textarea.form-control {
   padding: 0;
   margin-left: 4px;
 }
+
+/* ============ Phone link ============ */
+.phone-link {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.phone-link:hover {
+  text-decoration: underline;
+}
