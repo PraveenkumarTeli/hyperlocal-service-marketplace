@@ -54,10 +54,41 @@ router.put("/:id", protect, authorize("provider"), async (req, res) => {
 });
 
 // GET all approved services (public - customers browsing)
+// Supports optional query params: ?search=&category=&location=
 router.get("/", async (req, res) => {
   try {
-    const services = await Service.find({ isApproved: true }).populate("providerId", "name phone location");
+    const { search, category, location } = req.query;
+
+    const query = { isApproved: true };
+
+    if (category) {
+      query.category = category;
+    }
+
+    if (search) {
+      const regex = new RegExp(search, "i"); // case-insensitive
+      query.$or = [{ title: regex }, { category: regex }];
+    }
+
+    let services = await Service.find(query).populate("providerId", "name phone location");
+
+    // location lives on the populated provider, so filter in memory
+    if (location) {
+      const locRegex = new RegExp(location, "i");
+      services = services.filter((s) => locRegex.test(s.providerId?.location || ""));
+    }
+
     res.status(200).json(services);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// GET distinct categories currently in use (for the filter dropdown)
+router.get("/categories", async (req, res) => {
+  try {
+    const categories = await Service.distinct("category", { isApproved: true });
+    res.status(200).json(categories);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

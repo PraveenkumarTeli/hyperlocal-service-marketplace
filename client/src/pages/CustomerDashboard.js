@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import API from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 
@@ -17,27 +17,63 @@ function CustomerDashboard() {
 
   const [ratingBookingId, setRatingBookingId] = useState(null);
   const [ratingValue, setRatingValue] = useState(5);
-   
-useEffect(() => {
-  fetchServices();
-  fetchMyBookings();
-  fetchReviewedBookings();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, []);
+  const [hoverValue, setHoverValue] = useState(0); // for star hover preview
 
-  const fetchReviewedBookings = async () => {
-  try {
-    const res = await API.get("/reviews/my-reviewed-bookings");
-    setMyReviewedBookings(res.data);
-  } catch (err) {
-    console.log(err);
-  }
-};
-  const fetchServices = async () => {
+  // --- search & filter state ---
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [locationFilter, setLocationFilter] = useState("");
+  const [categories, setCategories] = useState([]);
+
+  const fetchServices = useCallback(async () => {
     try {
-      const res = await API.get("/services");
+      const params = {};
+      if (searchTerm) params.search = searchTerm;
+      if (categoryFilter) params.category = categoryFilter;
+      if (locationFilter) params.location = locationFilter;
+
+      const res = await API.get("/services", { params });
       setServices(res.data);
       res.data.forEach((service) => fetchRating(service._id));
+    } catch (err) {
+      console.log(err);
+    }
+  }, [searchTerm, categoryFilter, locationFilter]);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await API.get("/services/categories");
+      setCategories(res.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+    fetchMyBookings();
+    fetchReviewedBookings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Debounce so we don't hit the API on every keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchServices();
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [fetchServices]);
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setCategoryFilter("");
+    setLocationFilter("");
+  };
+
+  const fetchReviewedBookings = async () => {
+    try {
+      const res = await API.get("/reviews/my-reviewed-bookings");
+      setMyReviewedBookings(res.data);
     } catch (err) {
       console.log(err);
     }
@@ -83,6 +119,7 @@ useEffect(() => {
       await API.post("/reviews", { bookingId, rating: ratingValue });
       setSuccessMsg("Thanks for your rating!");
       setRatingBookingId(null);
+      setRatingValue(5);
       setMyReviewedBookings((prev) => [...prev, bookingId]);
       fetchServices();
     } catch (err) {
@@ -107,7 +144,44 @@ useEffect(() => {
         {errorMsg && <p className="alert alert-error">{errorMsg}</p>}
 
         <h3 className="section-title">Available Services</h3>
-        {services.length === 0 && <p className="empty-text">No services available yet.</p>}
+
+        <div className="filter-bar">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Search by title or category..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <select
+            className="form-control"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+          >
+            <option value="">All categories</option>
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Location (e.g. Bangalore)"
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+          />
+          {(searchTerm || categoryFilter || locationFilter) && (
+            <button onClick={clearFilters} className="btn btn-secondary btn-sm">Clear</button>
+          )}
+        </div>
+
+        {services.length === 0 && (
+          <p className="empty-text">
+            {searchTerm || categoryFilter || locationFilter
+              ? "No services match your search."
+              : "No services available yet."}
+          </p>
+        )}
 
         {services.map((service) => (
           <div key={service._id} className="card">
@@ -152,14 +226,22 @@ useEffect(() => {
             {booking.status === "completed" && !myReviewedBookings.includes(booking._id) && (
               <div style={{ marginTop: "10px" }}>
                 {ratingBookingId === booking._id ? (
-                  <div className="inline-inputs">
-                    <select className="form-control" value={ratingValue} onChange={(e) => setRatingValue(Number(e.target.value))} style={{ maxWidth: "100px" }}>
-                      <option value={5}>5 ⭐</option>
-                      <option value={4}>4 ⭐</option>
-                      <option value={3}>3 ⭐</option>
-                      <option value={2}>2 ⭐</option>
-                      <option value={1}>1 ⭐</option>
-                    </select>
+                  <div className="inline-inputs" style={{ alignItems: "center" }}>
+                    <div className="star-rating">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          className={`star-btn ${star <= (hoverValue || ratingValue) ? "star-filled" : ""}`}
+                          onClick={() => setRatingValue(star)}
+                          onMouseEnter={() => setHoverValue(star)}
+                          onMouseLeave={() => setHoverValue(0)}
+                          aria-label={`Rate ${star} star${star > 1 ? "s" : ""}`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
                     <button onClick={() => handleSubmitRating(booking._id)} className="btn btn-success btn-sm">Submit</button>
                     <button onClick={() => setRatingBookingId(null)} className="btn btn-secondary btn-sm">Cancel</button>
                   </div>

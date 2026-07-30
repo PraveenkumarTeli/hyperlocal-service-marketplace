@@ -4,7 +4,6 @@
    Drop-in replacement — same class names, no JSX changes needed
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap');
 
 :root {
   --ink: #16202f;
@@ -386,4 +385,48 @@ button:focus-visible,
 .form-control:focus-visible {
   outline: 2px solid var(--amber);
   outline-offset: 2px;
+}
+
+/* ============ Star Rating Input ============ */
+.star-rating {
+  display: flex;
+  gap: 2px;
+  margin-right: 4px;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+  padding: 2px;
+  color: var(--line);
+  transition: color 0.12s ease, transform 0.1s ease;
+}
+
+.star-btn:hover {
+  transform: scale(1.15);
+}
+
+.star-btn.star-filled {
+  color: var(--amber);
+}
+
+/* ============ Search & Filter Bar ============ */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.filter-bar .form-control {
+  flex: 1;
+  min-width: 160px;
+}
+
+.filter-bar select.form-control {
+  flex: 0.7;
+  cursor: pointer;
 }
