@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const validate = require("../middleware/validate");
 const { registerValidation, loginValidation } = require("../validators/authValidators");
+const { loginLimiter } = require("../middleware/rateLimiter");
 
 const router = express.Router();
 
@@ -12,17 +13,14 @@ router.post("/register", registerValidation, validate, async (req, res) => {
   try {
     const { name, email, password, role, phone, location } = req.body;
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists with this email" });
     }
 
-    // Hash the password before saving
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create new user
     const newUser = new User({
       name,
       email,
@@ -41,23 +39,20 @@ router.post("/register", registerValidation, validate, async (req, res) => {
 });
 
 // LOGIN
-router.post("/login", loginValidation, validate, async (req, res) => {
+router.post("/login", loginLimiter, loginValidation, validate, async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // Compare entered password with hashed password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // Create JWT token
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
